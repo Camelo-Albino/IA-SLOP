@@ -8,60 +8,37 @@
     <!-- Phaser via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-
-        :root {
-            --neon-pink: #ff00ff;
-            --neon-blue: #00ffff;
-            --bg-dark: #050507;
-        }
-
-        * {
+        /* Forçando o corpo a ser o container absoluto */
+        html,
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            cursor: crosshair;
-        }
-
-        body {
-            background: var(--bg-dark);
-            color: white;
-            font-family: 'Orbitron', sans-serif;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
         }
 
+        /* Removendo qualquer interferência que possa encolher o jogo */
         #game-container {
-            box-shadow: 0 0 50px rgba(0, 255, 255, 0.2);
-            border: 2px solid rgba(0, 255, 255, 0.2);
-            background: #000;
+            width: 1280px;
+            height: 720px;
+            display: block;
         }
 
-        /* Efeito de Scanline opcional - Ajustado para não bloquear a visão */
-        body::after {
-            content: " ";
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-            z-index: 999;
-            background-size: 100% 4px;
-            pointer-events: none;
-            opacity: 0.3;
+        canvas {
+            image-rendering: pixelated;
         }
     </style>
 </head>
 
 <body>
-    <div id="game-container"></div>
-
+    <!-- Removi o ID do container para o Phaser criar o próprio e não se confundir com CSS -->
     <script>
-        // --- CÓDIGO DO JOGO CONSOLIDADO ---
+        // --- CÓDIGO DO JOGO ---
 
         class Boot extends Phaser.Scene {
             constructor() { super('Boot'); }
@@ -71,15 +48,16 @@
         class Preloader extends Phaser.Scene {
             constructor() { super('Preloader'); }
             preload() {
-                const { width, height } = this.scale;
+                const width = 1280;
+                const height = 720;
                 let bar = this.add.graphics();
                 this.load.on('progress', (v) => {
                     bar.clear();
                     bar.fillStyle(0x00ffff, 1);
                     bar.fillRect(width / 4, height / 2 - 25, (width / 2) * v, 50);
                 });
-                this.add.text(width / 2, height / 2 - 50, 'CARREGANDO SISTEMAS...', {
-                    fontSize: '24px', fontFamily: 'Orbitron', color: '#00ffff'
+                this.add.text(width / 2, height / 2 - 80, 'SISTEMA INICIALIZANDO...', {
+                    fontSize: '32px', color: '#00ffff', fontStyle: 'bold'
                 }).setOrigin(0.5);
             }
             create() { this.scene.start('MainMenu'); }
@@ -88,21 +66,23 @@
         class MainMenu extends Phaser.Scene {
             constructor() { super('MainMenu'); }
             create() {
-                const { width, height } = this.scale;
+                const width = 1280;
+                const height = 720;
+
                 this.add.text(width / 2, height / 3, 'ROBO SIEGE', {
-                    fontSize: '112px', fontFamily: 'Orbitron', color: '#00ffff', stroke: '#ff00ff', strokeThickness: 12
-                }).setOrigin(0.5).setShadow(0, 0, '#00ffff', 20, true, true);
+                    fontSize: '100px', color: '#00ffff', stroke: '#ff00ff', strokeThickness: 10
+                }).setOrigin(0.5);
 
-                const playBtn = this.add.text(width / 2, height / 1.6, 'INICIAR PROJETO', {
-                    fontSize: '42px', fontFamily: 'Orbitron', color: '#ffffff', backgroundColor: '#ff00ff', padding: { x: 40, y: 20 }
-                }).setOrigin(0.5).setInteractive();
+                const playBtn = this.add.rectangle(width / 2, height / 1.6, 400, 80, 0xff00ff)
+                    .setInteractive()
+                    .on('pointerdown', () => this.scene.start('BuildScene'));
 
-                playBtn.on('pointerdown', () => this.scene.start('BuildScene'));
-                playBtn.on('pointerover', () => playBtn.setScale(1.1));
-                playBtn.on('pointerout', () => playBtn.setScale(1.0));
+                this.add.text(width / 2, height / 1.6, 'INICIAR JOGO', {
+                    fontSize: '40px', color: '#ffffff'
+                }).setOrigin(0.5);
 
-                this.add.text(width / 2, height - 50, 'Use o Mouse para Construir | WASD + Shift para Invasão', {
-                    fontSize: '16px', color: '#555'
+                this.add.text(width / 2, height - 50, 'CLIQUE PARA COMEÇAR (MOUSE + TECLADO)', {
+                    fontSize: '20px', color: '#00ffff'
                 }).setOrigin(0.5);
             }
         }
@@ -110,9 +90,7 @@
         class BuildScene extends Phaser.Scene {
             constructor() {
                 super('BuildScene');
-                this.tileSize = 40;
                 this.grid = [];
-                this.cols = 32; this.rows = 18;
                 this.scrap = 500;
                 this.selectedItem = 'steel';
                 this.items = {
@@ -125,52 +103,43 @@
             }
 
             create() {
-                this.grid = Array(this.cols).fill().map(() => Array(this.rows).fill(null));
-
+                this.grid = Array(32).fill().map(() => Array(18).fill(null));
                 const graphics = this.add.graphics();
-                graphics.lineStyle(1, 0x00ffff, 0.1);
-                for (let i = 0; i <= this.cols; i++) graphics.lineBetween(i * 40, 0, i * 40, 720);
-                for (let j = 0; j <= this.rows; j++) graphics.lineBetween(0, j * 40, 1280, j * 40);
+                graphics.lineStyle(1, 0x00ffff, 0.2);
+                for (let i = 0; i <= 32; i++) graphics.lineBetween(i * 40, 0, i * 40, 720);
+                for (let j = 0; j <= 18; j++) graphics.lineBetween(0, j * 40, 1280, j * 40);
 
                 this.createUI();
                 this.createCore();
 
                 this.input.on('pointerdown', (p) => this.placeItem(p));
-
                 this.timeLeft = 60;
-                this.timerText = this.add.text(20, 20, `TEMPO: ${this.timeLeft}s`, {
-                    fontSize: '28px', color: '#ff00ff', fontFamily: 'Orbitron'
-                });
-
+                this.timerText = this.add.text(20, 20, `TEMPO: ${this.timeLeft}s`, { fontSize: '28px', color: '#ff00ff' });
                 this.time.addEvent({
-                    delay: 1000,
-                    callback: () => {
+                    delay: 1000, callback: () => {
                         this.timeLeft--;
                         this.timerText.setText(`TEMPO: ${this.timeLeft}s`);
                         if (this.timeLeft <= 0) this.finishBuild();
-                    },
-                    loop: true
+                    }, loop: true
                 });
             }
 
             createUI() {
-                const { width, height } = this.scale;
+                const width = 1280; const height = 720;
                 this.add.rectangle(width / 2, height - 60, 700, 100, 0x111111, 0.9).setStrokeStyle(3, 0x00ffff);
                 let xOffset = width / 2 - 280;
                 Object.keys(this.items).forEach(key => {
                     const item = this.items[key];
-                    const btn = this.add.rectangle(xOffset, height - 60, 100, 60, item.color, 0.8)
+                    const btn = this.add.rectangle(xOffset, height - 60, 100, 60, item.color)
                         .setInteractive().on('pointerdown', () => { this.selectedItem = key; });
-                    this.add.text(xOffset, height - 60, item.label, { fontSize: '12px', fontFamily: 'Orbitron' }).setOrigin(0.5);
+                    this.add.text(xOffset, height - 60, item.label, { fontSize: '12px' }).setOrigin(0.5);
                     xOffset += 115;
                 });
-                this.scrapText = this.add.text(width - 250, 20, `SUCATA: ${this.scrap}`, {
-                    fontSize: '28px', color: '#ffff00', fontFamily: 'Orbitron'
-                });
+                this.scrapText = this.add.text(width - 250, 20, `SUCATA: ${this.scrap}`, { fontSize: '28px', color: '#ffff00' });
             }
 
             createCore() {
-                const x = this.cols - 3; const y = this.rows - 5;
+                const x = 29; const y = 13;
                 this.add.star(x * 40 + 20, y * 40 + 20, 5, 15, 30, 0x00ffff).setStrokeStyle(2, 0xff00ff);
                 this.grid[x][y] = 'core';
             }
@@ -179,7 +148,7 @@
                 if (p.y > 610) return;
                 const x = Math.floor(p.x / 40);
                 const y = Math.floor(p.y / 40);
-                if (x >= 0 && x < this.cols && y >= 0 && y < this.rows) {
+                if (x >= 0 && x < 32 && y >= 0 && y < 18) {
                     const item = this.items[this.selectedItem];
                     if (this.scrap >= item.cost && !this.grid[x][y]) {
                         this.scrap -= item.cost;
@@ -197,7 +166,7 @@
             constructor() { super('ActionScene'); }
             init(data) { this.gridData = data.grid; }
             create() {
-                const { width, height } = this.scale;
+                const width = 1280; const height = 720;
                 this.platforms = this.physics.add.staticGroup();
                 this.hazards = this.physics.add.staticGroup();
                 this.projectiles = this.physics.add.group();
@@ -214,7 +183,7 @@
                             this.add.triangle(x, y + 10, 0, 10, 15, -10, 30, 10, 0xff0000);
                         }
                         else if (item === 'core') {
-                            this.coreObj = this.coreGroup.create(x, y, null).setDisplaySize(60, 60).refreshBody();
+                            this.coreGroup.create(x, y, null).setDisplaySize(60, 60).refreshBody();
                             this.add.star(x, y, 5, 15, 30, 0x00ffff).setStrokeStyle(3, 0xff00ff);
                         }
                         else if (item === 'fake') this.add.rectangle(x, y, 40, 40, 0x444444);
@@ -242,7 +211,7 @@
                 this.physics.add.overlap(this.player, this.jumpPads, () => this.player.setVelocityY(-900));
                 this.physics.add.overlap(this.player, this.coreGroup, () => {
                     if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
-                        alert("MISSÃO CUMPRIDA! NÚCLEO DESTRUÍDO.");
+                        alert("MISSÃO CUMPRIDA!");
                         this.scene.start('MainMenu');
                     }
                 });
@@ -250,7 +219,7 @@
                 this.physics.add.collider(this.projectiles, this.platforms, (p) => p.destroy());
 
                 this.canDoubleJump = true;
-                this.add.text(20, 20, 'MISSÃO: DESTRUA O NÚCLEO (ESPAÇO)', { color: '#ff00ff', fontSize: '24px', fontFamily: 'Orbitron' });
+                this.add.text(20, 20, 'DESTRUA O NÚCLEO (ESPAÇO)', { color: '#ff00ff', fontSize: '24px' });
             }
 
             fireTurret(x, y) {
@@ -280,9 +249,8 @@
         }
 
         const config = {
-            type: Phaser.AUTO,
+            type: Phaser.CANVAS, // Forçando modo CANVAS para evitar bugs de WebGL local
             width: 1280, height: 720,
-            parent: 'game-container',
             backgroundColor: '#0a0a0c',
             scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
             physics: { default: 'arcade', arcade: { gravity: { y: 1200 }, debug: false } },

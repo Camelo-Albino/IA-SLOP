@@ -1,5 +1,3 @@
-import Phaser from 'phaser';
-
 export class MainMenu extends Phaser.Scene {
     constructor() {
         super('MainMenu');
@@ -27,10 +25,5 @@ export class MainMenu extends Phaser.Scene {
         playBtn.on('pointerdown', () => this.scene.start('BuildScene'));
         playBtn.on('pointerover', () => playBtn.setScale(1.1));
         playBtn.on('pointerout', () => playBtn.setScale(1.0));
-
-        this.add.text(width / 2, height - 100, 'ENGENHEIRO vs INVASOR', {
-            fontSize: '24px',
-            color: '#555555'
-        }).setOrigin(0.5);
     }
 }

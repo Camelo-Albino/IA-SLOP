@@ -1,5 +1,3 @@
-import Phaser from 'phaser';
-
 export class Preloader extends Phaser.Scene {
     constructor() {
         super('Preloader');
@@ -9,7 +7,6 @@ export class Preloader extends Phaser.Scene {
         let width = this.cameras.main.width;
         let height = this.cameras.main.height;
 
-        // Progress bar visual
         let bar = this.add.graphics();
         this.load.on('progress', (value) => {
             bar.clear();

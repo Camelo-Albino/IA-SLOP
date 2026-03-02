@@ -1,5 +1,3 @@
-import Phaser from 'phaser';
-
 export class BuildScene extends Phaser.Scene {
     constructor() {
         super('BuildScene');
@@ -74,7 +72,7 @@ export class BuildScene extends Phaser.Scene {
             this.add.text(xOffset, height - 60, item.label, { fontSize: '14px', fontFamily: 'Orbitron' }).setOrigin(0.5);
             xOffset += 115;
 
-            if (key === 'steel') btn.setStrokeStyle(4, 0xffffff); // Initial selection
+            if (key === 'steel') btn.setStrokeStyle(4, 0xffffff);
             btn.name = key;
         });
 

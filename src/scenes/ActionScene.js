@@ -1,5 +1,3 @@
-import Phaser from 'phaser';
-
 export class ActionScene extends Phaser.Scene {
     constructor() {
         super('ActionScene');
@@ -21,12 +19,10 @@ export class ActionScene extends Phaser.Scene {
 
         this.parseGrid();
 
-        // Player (Invasor)
         this.player = this.physics.add.sprite(80, height - 100, null).setSize(30, 40);
         this.player.setCollideWorldBounds(true);
         this.player.setTint(0x00ffff);
 
-        // Visual indicator for player since we have no sprites
         this.pRect = this.add.rectangle(0, 0, 30, 40, 0x00ffff);
 
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -60,10 +56,10 @@ export class ActionScene extends Phaser.Scene {
                     this.hazards.create(x, y + 10, null).setDisplaySize(30, 20).setTint(0xff0000).refreshBody();
                     this.add.triangle(x, y + 10, 0, 10, 15, -10, 30, 10, 0xff0000);
                 } else if (item === 'core') {
-                    const c = this.coreGroup.create(x, y, null).setDisplaySize(60, 60).refreshBody();
+                    this.coreGroup.create(x, y, null).setDisplaySize(60, 60).refreshBody();
                     this.add.star(x, y, 5, 15, 30, 0x00ffff).setStrokeStyle(3, 0xff00ff);
                 } else if (item === 'fake') {
-                    this.add.rectangle(x, y, 40, 40, 0x444444); // No body
+                    this.add.rectangle(x, y, 40, 40, 0x444444);
                 } else if (item === 'jump') {
                     this.jumpPads.create(x, y + 15, null).setDisplaySize(40, 10).setTint(0x00ff00).refreshBody();
                     this.add.rectangle(x, y + 15, 40, 10, 0x00ff00);
@@ -83,7 +79,7 @@ export class ActionScene extends Phaser.Scene {
         const proj = this.projectiles.create(x, y, null).setDisplaySize(10, 10);
         proj.setTint(0xffff00);
         proj.body.setAllowGravity(false);
-        proj.setVelocityX(-400); // Firing left by default
+        proj.setVelocityX(-400);
     }
 
     update() {

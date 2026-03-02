@@ -1,9 +1,8 @@
-import Phaser from 'phaser';
-import { Boot } from './scenes/Boot';
-import { Preloader } from './scenes/Preloader';
-import { MainMenu } from './scenes/MainMenu';
-import { BuildScene } from './scenes/BuildScene';
-import { ActionScene } from './scenes/ActionScene';
+import { Boot } from './scenes/Boot.js';
+import { Preloader } from './scenes/Preloader.js';
+import { MainMenu } from './scenes/MainMenu.js';
+import { BuildScene } from './scenes/BuildScene.js';
+import { ActionScene } from './scenes/ActionScene.js';
 
 const config = {
     type: Phaser.AUTO,

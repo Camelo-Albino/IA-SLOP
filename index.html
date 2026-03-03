@@ -63,7 +63,7 @@
                 this.selectedItem = 'steel';
                 this.items = {
                     steel: { cost: 15, color: 0x444444, label: 'Muro' },
-                    fake: { cost: 10, color: 0x6666ff, label: 'Falso' },
+                    mine: { cost: 60, color: 0x8800ff, label: 'Mina' },
                     spikes: { cost: 40, color: 0xff0000, label: 'Espinhos' },
                     turret: { cost: 120, color: 0xffa500, label: 'Laser' },
                     speed: { cost: 30, color: 0x00ff00, label: 'Turbo' }
@@ -128,18 +128,30 @@
                 if (x >= 0 && x < 32 && y >= 0 && y < 18) {
                     if (this.grid[x][y]) return;
 
-                    // Regra: Bloquear QUALQUER bloco que feche o caminho
-                    const prevValue = this.grid[x][y];
-                    this.grid[x][y] = this.selectedItem;
-                    if (!this.checkPath()) {
-                        this.grid[x][y] = prevValue; // Reverte se fechar
-                        this.showWarning("ESSE BLOCO BLOQUEIA O ACESSO AO NÚCLEO!");
+                    const item = this.items[this.selectedItem];
+                    if (this.scrap < item.cost) {
+                        this.showWarning("SUCATA INSUFICIENTE!");
                         return;
                     }
 
+                    // Regra: Bloquear muro que fecha o caminho
+                    const prevValue = this.grid[x][y];
+                    this.grid[x][y] = (this.selectedItem === 'steel') ? 'steel' : 'item'; // Registra como obstáculo se for muro
+
+                    if (this.selectedItem === 'steel' && !this.checkPath()) {
+                        this.grid[x][y] = prevValue; // Reverte se fechar
+                        this.showWarning("ESSE BLOCO FECHA O CAMINHO!");
+                        return;
+                    }
+
+                    // Se não for steel, mas o usuário quer garantir que não bloqueamos com outros blocos?
+                    // Na verdade, apenas o Steel tem colisão e impede o avanço físico.
+                    // Para os outros, marcamos apenas o grid para não colocar dois no mesmo lugar.
+                    this.grid[x][y] = this.selectedItem;
+
                     this.scrap -= item.cost;
                     this.scrapText.setText(`SUCATA: ${this.scrap}`);
-                    const rect = this.add.rectangle(x * 40 + 20, y * 40 + 20, 38, 38, item.color);
+                    this.add.rectangle(x * 40 + 20, y * 40 + 20, 38, 38, item.color);
 
                     if (this.scrap <= 0) {
                         this.showWarning("SUCATA ESGOTADA! INVASÃO EM 3s...");
@@ -212,6 +224,10 @@
                         }
                         else if (item === 'speed') {
                             this.add.rectangle(x, y, 40, 40, 0x00ff00, 0.3);
+                        }
+                        else if (item === 'mine') {
+                            this.hazards.create(x, y, null).setDisplaySize(20, 20).refreshBody();
+                            this.add.circle(x, y, 10, 0x8800ff);
                         }
                     }
                 }

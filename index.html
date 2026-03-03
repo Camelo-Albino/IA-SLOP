@@ -122,7 +122,10 @@
             }
 
             placeItem(p) {
-                if (this.isTransitioning || p.y > 610) return;
+                if (this.isTransitioning) return;
+                // Ajuste para ignorar cliques na área da UI
+                if (p.y > 600) return;
+
                 const x = Math.floor(p.x / 40);
                 const y = Math.floor(p.y / 40);
 

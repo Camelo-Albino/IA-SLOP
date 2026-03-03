@@ -123,7 +123,8 @@
 
             placeItem(p) {
                 if (this.isTransitioning || p.y > 610) return;
-                const x = Math.floor(p.x / 40); const y = Math.floor(p.y / 40);
+                const x = Math.floor(p.x / 40);
+                const y = Math.floor(p.y / 40);
 
                 if (x >= 0 && x < 32 && y >= 0 && y < 18) {
                     if (this.grid[x][y]) return;
@@ -134,20 +135,17 @@
                         return;
                     }
 
-                    // Regra: Bloquear muro que fecha o caminho
-                    const prevValue = this.grid[x][y];
-                    this.grid[x][y] = (this.selectedItem === 'steel') ? 'steel' : 'item'; // Registra como obstáculo se for muro
-
-                    if (this.selectedItem === 'steel' && !this.checkPath()) {
-                        this.grid[x][y] = prevValue; // Reverte se fechar
-                        this.showWarning("ESSE BLOCO FECHA O CAMINHO!");
-                        return;
+                    // Apenas muros ('steel') bloqueiam o caminho fisicamente
+                    if (this.selectedItem === 'steel') {
+                        this.grid[x][y] = 'steel';
+                        if (!this.checkPath()) {
+                            this.grid[x][y] = null;
+                            this.showWarning("ESSE BLOCO FECHA O CAMINHO!");
+                            return;
+                        }
+                    } else {
+                        this.grid[x][y] = this.selectedItem;
                     }
-
-                    // Se não for steel, mas o usuário quer garantir que não bloqueamos com outros blocos?
-                    // Na verdade, apenas o Steel tem colisão e impede o avanço físico.
-                    // Para os outros, marcamos apenas o grid para não colocar dois no mesmo lugar.
-                    this.grid[x][y] = this.selectedItem;
 
                     this.scrap -= item.cost;
                     this.scrapText.setText(`SUCATA: ${this.scrap}`);

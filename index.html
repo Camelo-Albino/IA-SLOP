@@ -60,22 +60,23 @@
         class BuildScene extends Phaser.Scene {
             constructor() {
                 super('BuildScene');
-                this.scrap = 2000;
                 this.selectedItem = 'steel';
                 this.items = {
                     steel: { cost: 15, color: 0x444444, label: 'Muro' },
                     fake: { cost: 10, color: 0x6666ff, label: 'Falso' },
                     spikes: { cost: 40, color: 0xff0000, label: 'Espinhos' },
-                    turret: { cost: 120, color: 0xffff00, label: 'Turret' },
+                    turret: { cost: 120, color: 0xffa500, label: 'Laser' },
                     speed: { cost: 30, color: 0x00ff00, label: 'Turbo' }
                 };
             }
 
             create() {
+                this.scrap = 1000; // Reduzido de 2000 para 1000 e resetado a cada partida
                 this.grid = Array(32).fill().map(() => Array(18).fill(null));
                 this.corePos = { x: 30, y: 8 };
                 this.spawnPos = { x: 1, y: 16 };
                 this.isTransitioning = false;
+                this.defenseTimer = 60; // Timer para a fase do defensor
 
                 const graphics = this.add.graphics();
                 graphics.lineStyle(1, 0x00ffff, 0.1);
@@ -90,6 +91,20 @@
 
                 this.statusText = this.add.text(640, 30, 'DEFESA: Crie labirintos (Caminho obrigatório)', { fontSize: '24px', color: '#00ffff' }).setOrigin(0.5);
                 this.warningText = this.add.text(640, 70, '', { fontSize: '20px', color: '#ff0000' }).setOrigin(0.5);
+
+                this.timerText = this.add.text(20, 20, `TEMPO: ${this.defenseTimer}`, { fontSize: '28px', color: '#ff00ff' });
+                this.time.addEvent({
+                    delay: 1000, callback: () => {
+                        if (this.isTransitioning) return;
+                        this.defenseTimer--;
+                        this.timerText.setText(`TEMPO: ${this.defenseTimer}`);
+                        if (this.defenseTimer <= 0) {
+                            this.showWarning("TEMPO ESGOTADO! INVASÃO COMEÇANDO...");
+                            this.isTransitioning = true;
+                            this.time.delayedCall(2000, () => this.scene.start('ActionScene', { grid: this.grid }));
+                        }
+                    }, loop: true
+                });
             }
 
             createUI() {
@@ -131,11 +146,6 @@
                     this.scrapText.setText(`SUCATA: ${this.scrap}`);
                     this.add.rectangle(x * 40 + 20, y * 40 + 20, 38, 38, item.color);
 
-                    if (this.scrap <= 0) {
-                        this.showWarning("SUCATA ESGOTADA! INVASÃO EM 3s...");
-                        this.isTransitioning = true;
-                        this.time.delayedCall(3000, () => this.scene.start('ActionScene', { grid: this.grid }));
-                    }
                 }
             }
 
@@ -194,7 +204,7 @@
                             this.add.star(x, y, 5, 15, 30, 0x00ffff).setStrokeStyle(3, 0xff00ff);
                         }
                         else if (item === 'turret') {
-                            this.add.rectangle(x, y, 30, 30, 0xffff00);
+                            this.add.rectangle(x, y, 30, 30, 0xffa500);
                             this.time.addEvent({ delay: 1800, callback: () => this.fireTurret(x, y), loop: true });
                         }
                         else if (item === 'speed') {
@@ -228,7 +238,7 @@
             }
 
             fireTurret(x, y) {
-                const p = this.projectiles.create(x, y, null).setDisplaySize(12, 12).setTint(0xffff00);
+                const p = this.projectiles.create(x, y, null).setDisplaySize(12, 12).setTint(0xffa500);
                 p.body.setAllowGravity(false);
                 this.physics.moveToObject(p, this.player, 280);
             }
